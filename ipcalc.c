@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 struct ipv4 {
     uint8_t octet_1;
@@ -102,61 +104,63 @@ bool valid_network_addr(struct ipv4 *network_addr, struct ipv4 *subnet_mask)
     return is_valid;
 }
 
+void ipv4_to_binary(const char *ipv4_str, struct ipv4 *ipv4_addr) {
+    char temp_str[16];
+    strncpy(temp_str, ipv4_str, sizeof(temp_str));
+    temp_str[sizeof(temp_str) - 1] = '\0';
+
+    char *token = strtok(temp_str, ".");
+    ipv4_addr->octet_1 = atoi(token);
+    
+    for (int i = 2; i <= 4; i++) {
+        token = strtok(NULL, ".");
+        if (token == NULL) {
+            printf("Error: Invalid IPv4 address format.\n");
+            exit(-1);
+        }
+        if (i == 2) {
+            ipv4_addr->octet_2 = atoi(token);
+        } else if (i == 3) {
+            ipv4_addr->octet_3 = atoi(token);
+        } else if (i == 4) {
+            ipv4_addr->octet_4 = atoi(token);
+        }
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
-/*
-    if (argc < 3) {
-        printf("Error: Too few arguments.\n");
-        printf("Example: ipcalc 192.168.0.0 255.255.255.0\n");
-        return -1;
-    } else if (argc > 3) {
-        printf("Error: Too many arguments.\n");
-        printf("Example: ipcalc 192.168.0.0 255.255.255.0\n");
+    if (argc != 3) {
+        printf("Usage: %s network_id subnet_mask\n", argv[0]);
         return -1;
     }
-
-    printf("[debug] First argument is: %s\n", argv[1]);
-    printf("[debug] Second argument is: %s\n\n", argv[2]);
-*/
-
+    
     struct ipv4 network_addr;
     struct ipv4 subnet_mask;
     struct ipv4 broadcast_addr;
     struct ipv4 first_usable_addr;
     struct ipv4 last_usable_addr;
 
-
-    /* 192 168 0 0 */
-    network_addr.octet_1 = 0b11000000;
-    network_addr.octet_2 = 0b10101000;
-    network_addr.octet_3 = 0b00000000;
-    network_addr.octet_4 = 0b00000000;
-
-    /* 255 255 255 0 */
-    subnet_mask.octet_1 = 0b11111111;
-    subnet_mask.octet_2 = 0b11111111;
-    subnet_mask.octet_3 = 0b11111111;
-    subnet_mask.octet_4 = 0b00000000;
+    ipv4_to_binary(argv[1], &network_addr);
+    ipv4_to_binary(argv[2], &subnet_mask);
 
 /*
     We need to check if the subnet mask is valid before
-    we can check if the network address is valid.    
+    we can check if the network address is valid.
 */
-    if (valid_subnet_mask(&subnet_mask) == true) {
-        calculate_broadcast(&network_addr, &subnet_mask, &broadcast_addr);
-    } else {
+    if (valid_subnet_mask(&subnet_mask) != true) {
         printf("Error: Invalid subnet mask\n");
         return -2;
     }
 
-
-    if (valid_network_addr(&network_addr, &subnet_mask) == true) {
-        calculate_usable_ip(&network_addr, &broadcast_addr, &first_usable_addr, &last_usable_addr);
-    } else {
-        printf("Error: Invalid network address for the subnet mask you provided\n");
+    if (valid_network_addr(&network_addr, &subnet_mask) != true) {
+        printf("Error: Invalid network address\n");
         return -3;
     }
+
+    calculate_usable_ip(&network_addr, &broadcast_addr, &first_usable_addr, &last_usable_addr);
+    calculate_broadcast(&network_addr, &subnet_mask, &broadcast_addr);
 
     printf("Network address: %u.%u.%u.%u\n", network_addr.octet_1, network_addr.octet_2, network_addr.octet_3, network_addr.octet_4);
     printf("Subnet mask: %u.%u.%u.%u\n", subnet_mask.octet_1, subnet_mask.octet_2, subnet_mask.octet_3, subnet_mask.octet_4);
