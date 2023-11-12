@@ -12,8 +12,8 @@ struct ipv4 {
 };
 
 /*
-1) perform bitwise NOT operation on subnet mask
-2) perform bitwise OR operation on inverted subnet mask and IP
+    1) perform bitwise NOT operation on subnet mask
+    2) perform bitwise OR operation on inverted subnet mask and IP
 */
 void calculate_broadcast(struct ipv4 *network_addr, struct ipv4 *subnet_mask, struct ipv4 *broadcast_addr)
 {
@@ -24,8 +24,8 @@ void calculate_broadcast(struct ipv4 *network_addr, struct ipv4 *subnet_mask, st
 }
 
 /*
-The first usable IP address is the network address + 1,
-and the last usable IP address is the broadcast address - 1. 
+    The first usable IP address is the network address + 1,
+    and the last usable IP address is the broadcast address - 1. 
 */
 void calculate_usable_ip(struct ipv4 *network_addr, struct ipv4 *broadcast_addr, struct ipv4 *first_usable_addr, struct ipv4 *last_usable_addr)
 {
@@ -56,8 +56,8 @@ void calculate_usable_ip(struct ipv4 *network_addr, struct ipv4 *broadcast_addr,
 }
 
 /*
-Valid subnet masks should have consecutive '1' bits
-followed by consecutive '0' bits.
+    Valid subnet masks should have consecutive '1' bits
+    followed by consecutive '0' bits.
 */
 bool valid_subnet_mask(struct ipv4 *subnet_mask)
 {
@@ -66,25 +66,23 @@ bool valid_subnet_mask(struct ipv4 *subnet_mask)
                     ((uint32_t)subnet_mask->octet_2 << 16) |
                     ((uint32_t)subnet_mask->octet_3 << 8) |
                     (uint32_t)subnet_mask->octet_4;
-
+    
     bool consecutive_zeros = false;
 
     for (int i = 31; i >= 0; i--) {
         if (mask & (1 << i)) {
-            if (consecutive_zeros) {
-                return false;
-            }
+            consecutive_zeros = false;
         } else {
             consecutive_zeros = true;
         }
     }
 
-    return true;
+    return consecutive_zeros;
 }
 
 /*
-Check if valid network address by using the bitwise AND operation between
-the network address and the inverted subnet mask.
+    Check if valid network address by using the bitwise AND operation between
+    the network address and the inverted subnet mask.
 */
 bool valid_network_addr(struct ipv4 *network_addr, struct ipv4 *subnet_mask)
 {
